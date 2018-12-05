@@ -101,6 +101,88 @@ public class CardTypesGrid_jsp extends HttpJspBase {
     return aFields;
   }
 
+  java.util.Hashtable getRecordToHash ( java.sql.ResultSet rs, java.util.Hashtable rsHash, String[] aFields ) throws java.sql.SQLException {
+    for ( int iF = 0; iF < aFields.length; iF++ ) {
+      rsHash.put( aFields[iF], getValue(rs, aFields[iF]));
+    }
+    return rsHash;
+  }
+
+  java.sql.Connection cn() throws java.sql.SQLException {
+    return java.sql.DriverManager.getConnection(strConn , DBusername, DBpassword);
+  }
+
+  String toURL(String strValue){
+    if ( strValue == null ) return "";
+    if ( strValue.compareTo("") == 0 ) return "";
+    return java.net.URLEncoder.encode(strValue);
+  }
+
+  String toHTML(String value) {
+    if ( value == null ) return "";
+    value = replace(value, "&", "&amp;");
+    value = replace(value, "<", "&lt;");
+    value = replace(value, ">", "&gt;");
+    value = replace(value, "\"", "&" + "quot;");
+    return value;
+  }
+
+  String getValueHTML(java.sql.ResultSet rs, String fieldName) {
+    try {
+      String value = rs.getString(fieldName);
+      if (value != null) {
+        return toHTML(value);
+      }
+    }
+    catch (java.sql.SQLException sqle) {}
+    return "";
+  }
+
+  String getValue(java.sql.ResultSet rs, String strFieldName) {
+    if ((rs==null) ||(isEmpty(strFieldName)) || ("".equals(strFieldName))) return "";
+    try {
+      String sValue = rs.getString(strFieldName);
+      if ( sValue == null ) sValue = "";
+      return sValue;
+    }
+    catch (Exception e) {
+      return "";
+    }
+  }
+  
+  String getParam(javax.servlet.http.HttpServletRequest req, String paramName) {
+    String param = req.getParameter(paramName);
+    if ( param == null || param.equals("") ) return "";
+    param = replace(param,"&amp;","&");
+    param = replace(param,"&lt;","<");
+    param = replace(param,"&gt;",">");
+    param = replace(param,"&amp;lt;","<");
+    param = replace(param,"&amp;gt;",">");
+    return param;
+  }
+
+  boolean isNumber (String param) {
+    boolean result;
+    if ( param == null || param.equals("")) return true;
+    param=param.replace('d','_').replace('f','_');
+    try {
+      Double dbl = new Double(param);
+      result = true;
+    }
+    catch (NumberFormatException nfe) {
+      result = false;
+    }
+    return result;
+  }
+
+  boolean isEmpty (int val){
+    return val==UNDEFINT;
+  }
+
+  boolean isEmpty (String val){
+    return (val==null || val.equals("")||val.equals(Integer.toString(UNDEFINT))); 
+  }
+
   String getCheckBoxValue (String val, String checkVal, String uncheckVal, int ctype) {
     if (val==null || val.equals("") ) return toSQL(uncheckVal, ctype);
     else return toSQL(checkVal, ctype);
